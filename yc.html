@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>🛍️ فروشگاه آنلاین</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {font-family: sans-serif; margin:0; padding:0; background:#0f1115; color:#eee; overflow-x:hidden;}
+    header {background:#111722; color:white; padding:20px; text-align:center; box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+    header h1 {margin:0; font-size:1.8rem; animation: fadeInDown 0.8s;}
+    header input {margin-top:12px; padding:10px; width:80%; max-width:320px; border-radius:8px; border:1px solid #333; background:#1a1f2c; color:white; outline:none; transition:0.3s;}
+    header input:focus {border-color:#007bff; box-shadow:0 0 8px #007bff55;}
+
+    .categories {display:flex; justify-content:center; margin:20px 0; gap:10px; flex-wrap:wrap;}
+    .categories button {padding:8px 18px; border:none; border-radius:8px; cursor:pointer; background:#222836; color:#eee; transition:0.3s, transform 0.2s;}
+    .categories button.active, .categories button:hover {background:#007bff; transform:translateY(-3px); box-shadow:0 4px 10px rgba(0,123,255,0.4);}
+
+    .products {display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px; padding:20px;}
+    .product {background:#1b2233; border:1px solid #2a2f3d; padding:15px; border-radius:14px; text-align:center; color:#eee; transition:0.3s; transform:scale(1);}
+    .product:hover {transform:scale(1.05); box-shadow:0 6px 16px rgba(0,123,255,0.35);}
+    .product img {width:100%; max-height:160px; object-fit:cover; border-radius:10px; transition:0.4s;}
+    .product h3 {margin:10px 0 5px;}
+    .product button {
+      background:#007bff; color:white; border:none; padding:10px 15px; margin-top:10px;
+      cursor:pointer; border-radius:8px; position:relative; overflow:hidden; transition:0.3s;
+    }
+    .product button:hover {background:#0062cc; transform:scale(1.05);}
+    .product button:active {transform:scale(0.95);}
+
+    /* Ripple effect */
+    .product button::after {
+      content:""; position:absolute; border-radius:50%; transform:scale(0);
+      width:100%; height:100%; top:0; left:0; opacity:0.4; background:white;
+      transition:transform 0.4s, opacity 0.6s;
+    }
+    .product button:active::after {transform:scale(2); opacity:0;}
+
+    .cart-icon {position:fixed; bottom:20px; left:20px; background:#007bff; color:white; font-size:2rem; padding:14px; border-radius:50%; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.4); transition:0.3s;}
+    .cart-icon:hover {transform:scale(1.15);}
+    .cart-shake {animation:shake 0.6s;}
+
+    /* صفحه‌ها */
+    #cart-page, #receipt {display:none; padding:20px; animation: fadeIn 0.6s;}
+    .page {animation: fadeIn 0.7s;}
+
+    #cart-items .item {background:#1b2233; margin-bottom:12px; padding:12px; border-radius:10px; border:1px solid #2a2f3d; display:flex; justify-content:space-between; align-items:center; animation: fadeInUp 0.6s;}
+    #cart-items img {width:70px; height:70px; border-radius:8px; object-fit:cover;}
+    .qty-controls {display:flex; gap:6px; align-items:center;}
+    .qty-controls button {background:#007bff; border:none; padding:6px 10px; color:#fff; cursor:pointer; border-radius:6px; transition:0.3s;}
+    .qty-controls button:hover {background:#0062cc;}
+    .remove-btn {background:#dc3545 !important;}
+    .back-btn {background:#007bff; color:white; padding:8px 14px; border:none; border-radius:8px; cursor:pointer; margin-bottom:20px; transition:0.3s;}
+    .back-btn:hover {background:#0062cc; transform:scale(1.05);}
+    #cart-total {margin-top:20px; font-size:1.3rem; font-weight:bold; color:#00aaff;}
+
+    /* رسید */
+    #receipt h2 {color:#00aaff; animation:fadeInDown 0.7s;}
+    #receipt .items p {margin:6px 0;}
+    #receipt button {margin-top:20px; padding:10px 20px; border:none; background:#007bff; color:white; border-radius:8px; cursor:pointer; transition:0.3s;}
+    #receipt button:hover {background:#0062cc;}
+
+    /* Toast */
+    #toast {
+      position: fixed; top:-60px; left:50%; transform:translateX(-50%);
+      background:#007bff; color:#fff; padding:14px 22px; border-radius:10px;
+      opacity:0; transition:all 0.6s ease; pointer-events:none; z-index:999;
+      font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.4);
+    }
+    #toast.show {top:20px; opacity:1;}
+  form {
+  margin-top:20px;
+  background:#1b2233;
+  padding:20px;
+  border-radius:12px;
+  border:1px solid #2a2f3d;
+  box-shadow:0 4px 12px rgba(0,0,0,0.4);
+}
+form input {
+  padding:12px;
+  border:1px solid #333;
+  border-radius:8px;
+  background:#222836;
+  color:white;
+  outline:none;
+  transition:0.3s;
+    margin-bottom:8px;
+}
+form input:focus {
+  border-color:#007bff;
+  box-shadow:0 0 8px #007bff55;
+}
+form button {
+  background:#007bff;
+  color:white;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
+form button:hover {
+  background:#0062cc;
+  transform:scale(1.05);
+}
+
+    /* Animations */
+    @keyframes fadeIn {from{opacity:0;} to{opacity:1;}}
+    @keyframes fadeInDown {from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}
+    @keyframes fadeInUp {from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}}
+    @keyframes shake {
+      0% {transform: translateX(0);}
+      25% {transform: translateX(-5px);}
+      50% {transform: translateX(5px);}
+      75% {transform: translateX(-5px);}
+      100% {transform: translateX(0);}
+    }
+  </style>
+</head>
+<body>
+  <div id="main-page" class="page">
+    <header>
+      <h1>🛍️ فروشگاه آنلاین</h1>
+      <input type="text" id="search" placeholder="جستجو محصول...">
+    </header>
+    <nav class="categories">
+      <button data-category="all" class="active">همه</button>
+      <button data-category="electronics">الکترونیک</button>
+      <button data-category="clothes">لباس</button>
+    </nav>
+    <main class="products" id="products"></main>
+    <div class="cart-icon" id="open-cart">🛒</div>
+  </div>
+
+  <div id="cart-page" class="page">
+    <button class="back-btn" id="back-to-main">⬅ بازگشت</button>
+    <h1>🛒 سبد خرید</h1>
+    <div id="cart-items"></div>
+    <div id="cart-total">جمع کل: 0 تومان</div>
+    <h2>اطلاعات کاربر</h2>
+    <form id="user-form">
+      <input type="text" id="name" placeholder="نام" required>
+      <input type="email" id="email" placeholder="ایمیل" required>
+      <input type="text" id="address" placeholder="آدرس" required>
+      <button type="submit">ثبت سفارش</button>
+    </form>
+  </div>
+
+  <div id="receipt" class="page">
+    <h2>✅ سفارش شما ثبت شد</h2>
+    <div class="items"></div>
+    <div class="user-info"></div>
+    <h3 id="receipt-total"></h3>
+    <button onclick="backToShop()">بازگشت به فروشگاه</button>
+  </div>
+
+  <div id="toast">متن تست</div>
+
+  <script>
+    const productsData = [
+      {id:1, name:"گوشی موبایل", desc:"مدل 2025", price:120000000, category:"electronics", img:"mb1.jpg"},
+      {id:2, name:"لپتاپ", desc:"Core i7", price:35000000, category:"electronics", img:"lb.jpg"},
+      {id:3, name:"تی‌شرت", desc:"100% پنبه", price:250000, category:"clothes", img:"ts.jpg"},
+    ];
+    const productsContainer = document.getElementById("products");
+    function renderProducts(list){
+      productsContainer.innerHTML = "";
+      list.forEach(p=>{
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <img src="${p.img}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>${p.desc}</p>
+          <p><b>${p.price.toLocaleString()} تومان</b></p>
+          <button onclick="addToCart(${p.id})">افزودن به سبد خرید</button>
+        `;
+        productsContainer.appendChild(div);
+      });
+    }
+    renderProducts(productsData);
+
+    document.querySelectorAll(".categories button").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelector(".categories button.active")?.classList.remove("active");
+        btn.classList.add("active");
+        const cat = btn.dataset.category;
+        if(cat==="all") renderProducts(productsData);
+        else renderProducts(productsData.filter(p=>p.category===cat));
+      });
+    });
+
+    document.getElementById("search").addEventListener("input", e=>{
+      const q=e.target.value.toLowerCase();
+      renderProducts(productsData.filter(p=>p.name.toLowerCase().includes(q)));
+    });
+
+    function getCart(){return JSON.parse(localStorage.getItem("cart"))||[];}
+    function saveCart(cart){localStorage.setItem("cart", JSON.stringify(cart));}
+
+    function addToCart(id){
+      let cart=getCart();
+      const item=cart.find(p=>p.id===id);
+      if(item) item.qty++; else {
+        const product=productsData.find(p=>p.id===id);
+        cart.push({...product, qty:1});
+      }
+      saveCart(cart);
+      showToast("✅ محصول اضافه شد");
+      document.getElementById("open-cart").classList.add("cart-shake");
+      setTimeout(()=>document.getElementById("open-cart").classList.remove("cart-shake"),600);
+    }
+
+    function changeQty(id,delta){
+      let cart=getCart();
+      const item=cart.find(p=>p.id===id);
+      if(item){
+        item.qty+=delta;
+        if(item.qty<=0) cart=cart.filter(p=>p.id!==id);
+      }
+      saveCart(cart);
+      renderCart();
+    }
+
+    function removeItem(id){
+      let cart=getCart().filter(p=>p.id!==id);
+      saveCart(cart);
+      renderCart();
+      showToast("❌ محصول حذف شد");
+    }
+
+    function showToast(message){
+      const toast=document.getElementById("toast");
+      toast.textContent=message;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"),2500);
+    }
+
+    const mainPage=document.getElementById("main-page");
+    const cartPage=document.getElementById("cart-page");
+    const receiptPage=document.getElementById("receipt");
+    const cartItemsDiv=document.getElementById("cart-items");
+    const cartTotalDiv=document.getElementById("cart-total");
+
+    document.getElementById("open-cart").addEventListener("click",()=>{
+      mainPage.style.display="none";
+      receiptPage.style.display="none";
+      cartPage.style.display="block";
+      renderCart();
+    });
+    document.getElementById("back-to-main").addEventListener("click",()=>{
+      cartPage.style.display="none";
+      mainPage.style.display="block";
+    });
+
+    function renderCart(){
+      const cart=getCart();
+      cartItemsDiv.innerHTML="";
+      let total=0;
+      if(cart.length===0){
+        cartItemsDiv.innerHTML="<p>سبد خرید خالی است.</p>";
+      } else {
+        cart.forEach(item=>{
+          total+=item.price*item.qty;
+          const div=document.createElement("div");
+          div.className="item";
+          div.innerHTML=`
+            <img src="${item.img}">
+            <div class="info">
+              <h4>${item.name}</h4>
+              <p>${item.desc}</p>
+              <p><b>${item.price.toLocaleString()} تومان</b></p>
+              <div class="qty-controls">
+                <button onclick="changeQty(${item.id},-1)">-</button>
+                <span>${item.qty}</span>
+                <button onclick="changeQty(${item.id},1)">+</button>
+                <button class="remove-btn" onclick="removeItem(${item.id})">حذف</button>
+              </div>
+            </div>
+          `;
+          cartItemsDiv.appendChild(div);
+        });
+      }
+      cartTotalDiv.textContent="جمع کل: "+total.toLocaleString()+" تومان";
+    }
+
+    document.getElementById("user-form").addEventListener("submit",e=>{
+      e.preventDefault();
+      let cart=getCart();
+      if(cart.length===0){showToast("❌ سبد خرید خالی است!");return;}
+      const user={
+        name:document.getElementById("name").value,
+        email:document.getElementById("email").value,
+        address:document.getElementById("address").value
+      };
+      localStorage.setItem("user",JSON.stringify(user));
+      cartPage.style.display="none";
+      receiptPage.style.display="block";
+      const itemsDiv=receiptPage.querySelector(".items");
+      const userInfoDiv=receiptPage.querySelector(".user-info");
+      const receiptTotal=document.getElementById("receipt-total");
+      itemsDiv.innerHTML="";
+      let total=0;
+      cart.forEach(item=>{
+        total+=item.price*item.qty;
+        const p=document.createElement("p");
+        p.textContent=`${item.name} × ${item.qty} = ${(item.price*item.qty).toLocaleString()} تومان`;
+        itemsDiv.appendChild(p);
+      });
+      userInfoDiv.innerHTML=`<p>👤 ${user.name}</p><p>📧 ${user.email}</p><p>📍 ${user.address}</p>`;
+      receiptTotal.textContent="جمع کل: "+total.toLocaleString()+" تومان";
+      localStorage.removeItem("cart");
+    });
+
+    function backToShop(){
+      receiptPage.style.display="none";
+      mainPage.style.display="block";
+    }
+  </script>
+</body>
+</html>
